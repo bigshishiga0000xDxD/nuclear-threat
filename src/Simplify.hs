@@ -52,7 +52,7 @@ simplifySum node@(Node OperationSum args) = simplifyLevel $ Node OperationSum si
           muls = filter isMul args
           others = filter (not . isMul) args
           coefs' = map ((\(x : xs) -> if isNum x
-                                        then (Node OperationMul xs, getNum x)
+                                        then (simplifyLevel $ Node OperationMul xs, getNum x)
                                         else (Node OperationMul (x : xs), 1)) . getArgs) muls ++
                   map (, 1) others
           unique = nub $ map fst coefs'
