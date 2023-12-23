@@ -58,7 +58,9 @@ instance (Show numType, Num numType, Hashable numType) => Show (Expression numTy
             powers' = map (\(b, e) -> if e == 1
                                       then [b]
                                       else [b] ++ "^" ++ show e) powers
-            others' = map show others
+            showExpr node@(Node OperationSum args) = '(' : show node ++ ")"
+            showExpr node = show node
+            others' = map showExpr others
             all' = powers' ++ others'
             rendered = head all' ++ concatMap (show OperationMul ++) (tail all')
     show (Node op exprs) =
