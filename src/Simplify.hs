@@ -17,7 +17,7 @@ simplifyLevel node@(Node op args) = case (length processed, op) of
         (1, OperationMul) -> head processed
         _                 -> Node op processed
     where reduced = if length processed == 1 then head processed else Node op processed
-          processed = sortVars . evalNums . concatMap mapArg $ args
+          processed = evalNums . concatMap mapArg $ args
           mapArg node@(Node op' args') = if op == op' then args' else [node]
           mapArg leaf = [leaf]
           evalNums args =
@@ -30,10 +30,6 @@ simplifyLevel node@(Node op args) = case (length processed, op) of
                     (OperationMul, 1) -> exprs
                     (OperationMul, 0) -> [Leaf $ Right 0]
                     (OperationMul, _) -> Leaf (Right accum) : exprs
-          sortVars args =
-            let vars = filter isVar args in
-            let others = filter (not . isVar) args in
-                others ++ (map (Leaf . Left) . sort . map getVar $ vars)
 
 
 simplifyNode :: (Num numType, Hashable numType) => Expression numType -> Expression numType
@@ -43,6 +39,7 @@ simplifyNode node = case simplified of
         Node OperationMul _    -> simplifyMul simplified
         _                      -> simplified
     where simplified = simplifyLevel node
+
 
 simplifySum :: (Num numType, Hashable numType) => Expression numType -> Expression numType
 simplifySum leaf@(Leaf x) = leaf
@@ -59,6 +56,7 @@ simplifySum node@(Node OperationSum args) = simplifyLevel $ Node OperationSum si
           coefs = [sum . map snd . filter ((== expr) . fst) $ coefs' | expr <- unique]
           simplified = zipWith (\coef expr -> simplifyLevel $ Leaf (Right coef) * expr) coefs unique
 
+
 simplifyMul :: (Num numType, Hashable numType) => Expression numType -> Expression numType
 simplifyMul leaf@(Leaf x) = leaf
 simplifyMul node@(Node OperationMul args) = simplifySum $ Node OperationSum unfolded
@@ -68,6 +66,7 @@ simplifyMul node@(Node OperationMul args) = simplifySum $ Node OperationSum unfo
           others = filter (not . isSum) args
           brackets = map getArgs sums ++ map return others
           unfolded = map (simplifyLevel . Node OperationMul) $ sequence brackets
+
 
 simplify :: (Num numType, Hashable numType) => Expression numType -> Expression numType
 simplify expr = case expr of

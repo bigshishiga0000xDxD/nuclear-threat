@@ -5,9 +5,11 @@ data Operation =
     OperationMul
     deriving Eq
 
+
 instance Show Operation where
     show OperationSum = " + "
     show OperationMul = " * "
+
 
 mapOperation :: Num numType => Operation -> [numType] -> numType
 mapOperation OperationSum = sum
